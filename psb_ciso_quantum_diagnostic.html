@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quantum Readiness Diagnostic | PSB CISO Checklist India 2026</title>
+<meta name="description" content="An interactive diagnostic checklist for CISOs of Public Sector Banks in India to assess quantum encryption readiness under the Finance Ministry's mandate.">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep:    #060d1a;
+    --bg-panel:   #0c1829;
+    --bg-card:    #0f1f35;
+    --bg-hover:   #162840;
+    --border:     #1e3550;
+    --border-lit: #2a4e72;
+    --cyan:       #00d4ff;
+    --cyan-dim:   #00a8cc;
+    --cyan-glow:  rgba(0,212,255,0.15);
+    --amber:      #ffb300;
+    --amber-dim:  rgba(255,179,0,0.15);
+    --red:        #ff4757;
+    --red-dim:    rgba(255,71,87,0.15);
+    --green:      #2ed573;
+    --green-dim:  rgba(46,213,115,0.15);
+    --text-pri:   #e8f4fd;
+    --text-sec:   #7a9bbd;
+    --text-muted: #3d5a78;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg-deep);
+    color: var(--text-pri);
+    font-family: 'Barlow', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+
+  .global-progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; background: var(--border); z-index: 100; }
+  .global-progress-fill { height: 100%; background: linear-gradient(90deg, var(--cyan), var(--green)); width: 0%; transition: width 0.5s; }
+
+  .wrapper { position: relative; z-index: 1; max-width: 920px; margin: 0 auto; padding: 48px 24px 80px; }
+
+  /* HEADER */
+  .header { text-align: center; margin-bottom: 48px; }
+  .header-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--cyan-glow); border: 1px solid var(--cyan-dim);
+    border-radius: 4px; padding: 6px 14px;
+    font-family: 'Share Tech Mono', monospace; font-size: 11px;
+    color: var(--cyan); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 20px;
+  }
+  .header-badge .dot { width:6px; height:6px; border-radius:50%; background:var(--cyan); animation:blink 1.5s ease-in-out infinite; }
+  @keyframes blink { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.8)} }
+  .header h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: clamp(28px,5vw,46px); font-weight: 800;
+    line-height: 1.1; letter-spacing: -.5px; margin-bottom: 12px;
+  }
+  .header h1 span { color: var(--cyan); }
+  .header p { color: var(--text-sec); font-size: 15px; font-weight: 300; max-width: 580px; margin: 0 auto 8px; }
+  .header-meta { font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--text-muted); letter-spacing:1px; }
+
+  /* SCORE PANEL */
+  .score-panel {
+    display: grid; grid-template-columns: 200px 1fr;
+    background: var(--bg-panel); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden; margin-bottom: 24px;
+  }
+  .score-gauge {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 32px 24px; background: var(--bg-card); border-right: 1px solid var(--border); position: relative;
+  }
+  .score-gauge::after { content:''; position:absolute; inset:0; background:radial-gradient(circle at 50% 60%, rgba(0,212,255,0.06), transparent 70%); }
+  .score-ring { width:110px; height:110px; position:relative; margin-bottom:12px; }
+  .score-ring svg { width:100%; height:100%; transform:rotate(-90deg); }
+  .score-ring .track { fill:none; stroke:var(--border); stroke-width:8; }
+  .score-ring .fill  { fill:none; stroke:var(--cyan); stroke-width:8; stroke-linecap:round; stroke-dasharray:283; stroke-dashoffset:283; transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1),stroke .4s; }
+  .score-number { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .score-number .big { font-family:'Share Tech Mono',monospace; font-size:26px; font-weight:700; color:var(--cyan); line-height:1; transition:color .4s; }
+  .score-number .small { font-size:11px; color:var(--text-muted); font-family:'Share Tech Mono',monospace; letter-spacing:1px; }
+  .score-label { font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--cyan); transition:color .4s; }
+
+  .score-details { padding:24px 28px; display:flex; flex-direction:column; justify-content:center; }
+  .score-details h3 { font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); margin-bottom:14px; }
+  .tier-bar { display:flex; flex-direction:column; gap:10px; }
+  .tier-item { display:grid; grid-template-columns:110px 1fr 58px; align-items:center; gap:10px; font-size:12px; }
+  .tier-item .name { color:var(--text-sec); font-family:'Share Tech Mono',monospace; font-size:11px; }
+  .tier-track { background:var(--border); border-radius:2px; height:4px; }
+  .tier-fill  { height:4px; border-radius:2px; transition:width .8s; width:0%; }
+  .tier-score { font-family:'Share Tech Mono',monospace; color:var(--text-muted); text-align:right; font-size:11px; }
+  .score-verdict {
+    margin-top:18px; padding:12px 16px; border-radius:6px;
+    border-left:3px solid var(--cyan); background:var(--cyan-glow);
+    font-size:13px; color:var(--text-pri); line-height:1.55; transition:all .4s;
+  }
+
+  /* SCORING KEY */
+  .scoring-key {
+    display:flex; align-items:center; gap:20px; flex-wrap:wrap;
+    background:var(--bg-panel); border:1px solid var(--border);
+    border-radius:8px; padding:12px 20px; margin-bottom:28px;
+    font-family:'Share Tech Mono',monospace; font-size:11px; letter-spacing:1px;
+  }
+  .scoring-key > span { color:var(--text-muted); }
+  .key-pill { display:inline-flex; align-items:center; gap:7px; }
+  .key-pip { width:8px; height:8px; border-radius:2px; }
+
+  /* SECTION LABEL */
+  .section-label {
+    display:flex; align-items:center; gap:12px;
+    font-family:'Share Tech Mono',monospace; font-size:11px;
+    color:var(--text-muted); letter-spacing:2px; text-transform:uppercase; margin-bottom:14px;
+  }
+  .section-label::after { content:''; flex:1; height:1px; background:var(--border); }
+
+  /* CHECKLIST */
+  .checklist { display:flex; flex-direction:column; gap:10px; margin-bottom:36px; }
+
+  .item {
+    background:var(--bg-card); border:1px solid var(--border);
+    border-radius:10px; overflow:hidden; transition:border-color .3s;
+  }
+  .item.all-started  { border-color:rgba(46,213,115,0.4); box-shadow:0 0 20px rgba(46,213,115,0.05); }
+  .item.some-started { border-color:rgba(255,179,0,0.35); }
+
+  .item-header { display:grid; grid-template-columns:52px 1fr auto; align-items:center; cursor:pointer; user-select:none; }
+
+  .item-num {
+    display:flex; align-items:center; justify-content:center;
+    min-height:70px; padding:16px 0;
+    font-family:'Share Tech Mono',monospace; font-size:13px; color:var(--text-muted);
+    border-right:1px solid var(--border); transition:color .25s; flex-direction:column; gap:4px;
+  }
+  .item.all-started  .item-num { color:var(--green); }
+  .item.some-started .item-num { color:var(--amber); }
+
+  .item-body { padding:14px 16px; }
+  .item-top { display:flex; align-items:center; gap:8px; margin-bottom:4px; flex-wrap:wrap; }
+
+  .priority-tag {
+    font-family:'Share Tech Mono',monospace; font-size:9px; letter-spacing:1.5px;
+    text-transform:uppercase; padding:2px 7px; border-radius:3px; font-weight:700; flex-shrink:0;
+  }
+  .priority-tag.critical { background:var(--red-dim);   color:var(--red);   border:1px solid rgba(255,71,87,0.3); }
+  .priority-tag.high     { background:var(--amber-dim); color:var(--amber); border:1px solid rgba(255,179,0,0.3); }
+  .priority-tag.medium   { background:var(--cyan-glow); color:var(--cyan);  border:1px solid rgba(0,212,255,0.3); }
+
+  .item-title { font-size:15px; font-weight:600; color:var(--text-pri); line-height:1.3; }
+  .item-desc  { font-size:12px; color:var(--text-sec); font-weight:300; margin-top:3px; }
+
+  /* Right side: progress + caret */
+  .item-right {
+    padding:0 16px; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:6px; min-width:72px;
+  }
+  .item-progress-count {
+    font-family:'Share Tech Mono',monospace; font-size:12px; color:var(--text-muted);
+    transition:color .3s; white-space:nowrap;
+  }
+  .item.all-started  .item-progress-count { color:var(--green); }
+  .item.some-started .item-progress-count { color:var(--amber); }
+  .item-mini-bar { width:44px; height:3px; background:var(--border); border-radius:2px; }
+  .item-mini-fill { height:3px; border-radius:2px; background:var(--text-muted); transition:width .4s, background .3s; width:0%; }
+  .item.all-started  .item-mini-fill { background:var(--green); }
+  .item.some-started .item-mini-fill { background:var(--amber); }
+  .caret { color:var(--text-muted); transition:transform .3s; display:flex; }
+  .item.open .caret { transform:rotate(180deg); }
+
+  /* EXPAND PANEL */
+  .item-expand { max-height:0; overflow:hidden; transition:max-height .45s cubic-bezier(.4,0,.2,1); }
+  .item-expand.open { max-height:700px; border-top:1px solid var(--border); }
+
+  /* SUB-ITEMS */
+  .sub-item {
+    display:grid; grid-template-columns:1fr auto;
+    align-items:center; gap:20px;
+    padding:14px 20px 14px 52px;
+    border-bottom:1px solid var(--border);
+    transition:background .2s;
+  }
+  .sub-item:last-child { border-bottom:none; }
+  .sub-item:hover { background:var(--bg-hover); }
+  .sub-item.started { background:rgba(46,213,115,0.04); }
+
+  .sub-text { font-size:13px; color:var(--text-sec); line-height:1.55; transition:color .2s; }
+  .sub-item.started .sub-text { color:var(--text-pri); }
+
+  /* Toggle pills */
+  .toggle-group { display:flex; flex-shrink:0; }
+  .toggle-btn {
+    padding:6px 14px;
+    font-family:'Share Tech Mono',monospace; font-size:10px; letter-spacing:1px; text-transform:uppercase;
+    border:1px solid var(--border-lit); background:transparent; color:var(--text-muted);
+    cursor:pointer; transition:all .18s; white-space:nowrap; line-height:1;
+  }
+  .toggle-btn:first-child { border-radius:5px 0 0 5px; border-right:none; }
+  .toggle-btn:last-child  { border-radius:0 5px 5px 0; }
+  .toggle-btn.ns-active   { background:var(--red-dim); color:var(--red); border-color:rgba(255,71,87,0.45); }
+  .toggle-btn.st-active   { background:var(--green-dim); color:var(--green); border-color:rgba(46,213,115,0.45); }
+  .toggle-btn:hover:not(.ns-active):not(.st-active) { border-color:var(--cyan); color:var(--cyan); }
+
+  /* ACTIONS */
+  .actions { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:36px; }
+  .btn { display:flex; align-items:center; gap:8px; padding:10px 20px; border-radius:6px; font-family:'Barlow',sans-serif; font-size:13px; font-weight:600; letter-spacing:.5px; cursor:pointer; transition:all .2s; border:none; }
+  .btn-primary { background:var(--cyan); color:#060d1a; }
+  .btn-primary:hover { background:#33ddff; transform:translateY(-1px); }
+  .btn-ghost { background:transparent; border:1px solid var(--border-lit); color:var(--text-sec); }
+  .btn-ghost:hover { border-color:var(--cyan); color:var(--cyan); }
+
+  /* FOOTER */
+  .footer { border-top:1px solid var(--border); padding-top:24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
+  .footer-left { font-size:12px; color:var(--text-muted); line-height:1.7; }
+  .footer-left strong { color:var(--text-sec); }
+  .footer-right { font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--text-muted); letter-spacing:1px; }
+
+  @media print {
+    body { background:#fff; color:#000; }
+    body::before,.global-progress,.actions { display:none; }
+    .item { border:1px solid #ccc; break-inside:avoid; }
+    .item-expand { max-height:none!important; border-top:1px solid #eee; }
+    .toggle-btn { border:1px solid #aaa; }
+    .toggle-btn.ns-active { background:#ffe8e8; color:#b00; }
+    .toggle-btn.st-active  { background:#e2ffe8; color:#060; }
+    .score-panel,.score-gauge,.score-details,.scoring-key { background:#f5f8fc!important; color:#000!important; border-color:#ccc!important; }
+  }
+
+  @media (max-width:620px) {
+    .score-panel { grid-template-columns:1fr; }
+    .score-gauge { border-right:none; border-bottom:1px solid var(--border); }
+    .sub-item { grid-template-columns:1fr; gap:10px; }
+    .item-header { grid-template-columns:44px 1fr auto; }
+    .toggle-btn { padding:6px 10px; font-size:9px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="global-progress"><div class="global-progress-fill" id="globalBar"></div></div>
+
+<div class="wrapper">
+
+  <div class="header">
+    <div class="header-badge"><span class="dot"></span>LIVE DIAGNOSTIC · PSB CISO TOOLKIT 2026</div>
+    <h1>Quantum Encryption<br><span>Readiness Diagnostic</span></h1>
+    <p>Expand each area and mark every action item as <strong>Not Started</strong> or <strong>Started</strong>. Your readiness score updates in real time.</p>
+    <div class="header-meta">VERSION 2.0 · APRIL 2026 · 10 AREAS · 40 ACTION ITEMS · 2.5 PTS EACH · MAX SCORE: 100</div>
+  </div>
+
+  <!-- SCORE PANEL -->
+  <div class="score-panel">
+    <div class="score-gauge">
+      <div class="score-ring">
+        <svg viewBox="0 0 100 100">
+          <circle class="track" cx="50" cy="50" r="45"/>
+          <circle class="fill" id="ringFill" cx="50" cy="50" r="45"/>
+        </svg>
+        <div class="score-number">
+          <span class="big" id="scoreNum">0</span>
+          <span class="small">/100</span>
+        </div>
+      </div>
+      <div class="score-label" id="scoreLabel">NOT ASSESSED</div>
+    </div>
+    <div class="score-details">
+      <h3>Score by Category</h3>
+      <div class="tier-bar">
+        <div class="tier-item">
+          <span class="name">GOVERNANCE</span>
+          <div class="tier-track"><div class="tier-fill" id="t0" style="background:var(--red)"></div></div>
+          <span class="tier-score" id="ts0">0 / 30</span>
+        </div>
+        <div class="tier-item">
+          <span class="name">TECHNICAL</span>
+          <div class="tier-track"><div class="tier-fill" id="t1" style="background:var(--amber)"></div></div>
+          <span class="tier-score" id="ts1">0 / 40</span>
+        </div>
+        <div class="tier-item">
+          <span class="name">OPERATIONS</span>
+          <div class="tier-track"><div class="tier-fill" id="t2" style="background:var(--cyan)"></div></div>
+          <span class="tier-score" id="ts2">0 / 30</span>
+        </div>
+      </div>
+      <div class="score-verdict" id="verdict">
+        Expand any area below and toggle each action item. Your score calculates automatically.
+      </div>
+    </div>
+  </div>
+
+  <!-- SCORING KEY -->
+  <div class="scoring-key">
+    <span>SCORING KEY :</span>
+    <div class="key-pill">
+      <div class="key-pip" style="background:var(--red-dim);border:1px solid rgba(255,71,87,.5)"></div>
+      <span style="color:var(--text-sec)">Not Started = 0 pts</span>
+    </div>
+    <div class="key-pill">
+      <div class="key-pip" style="background:var(--green-dim);border:1px solid rgba(46,213,115,.5)"></div>
+      <span style="color:var(--text-sec)">Started = 2.5 pts</span>
+    </div>
+    <span style="margin-left:auto;color:var(--text-sec)">40 action items × 2.5 pts = 100 total</span>
+  </div>
+
+  <div class="section-label">10 Quantum Readiness Areas — Tap to Expand & Assess</div>
+  <div class="checklist" id="checklist"></div>
+
+  <div class="actions">
+    <button class="btn btn-primary" onclick="window.print()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Print / Save PDF
+    </button>
+    <button class="btn btn-ghost" onclick="resetAll()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+      Reset All
+    </button>
+    <button class="btn btn-ghost" onclick="copyScore()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      Copy Score Report
+    </button>
+  </div>
+
+  <div class="footer">
+    <div class="footer-left">
+      Built for <strong>Indian PSB CISOs</strong> &nbsp;·&nbsp;
+      References: Finance Ministry PSB Directive · NIST FIPS 203/204/205 · CERT-In Quantum Cyber Readiness Whitepaper (Jul 2025) · India NQM · MeitY 2025 Whitepaper · PSB Hackathon 2026
+    </div>
+    <div class="footer-right">PSB-QRDC-v2 · 2026 · FREE TO DISTRIBUTE</div>
+  </div>
+
+</div>
+
+<script>
+const CAT_NAMES = ['GOVERNANCE','TECHNICAL','OPERATIONS'];
+const CAT_MAX   = [30, 40, 30];
+// GOVERNANCE: items 0,1,3       → 12 subs × 2.5 = 30
+// TECHNICAL:  items 2,4,5,7     → 16 subs × 2.5 = 40
+// OPERATIONS: items 6,8,9       → 12 subs × 2.5 = 30
+
+const ITEMS = [
+  {
+    num:"01", priority:"critical", category:0,
+    title:"Conduct a Full Cryptographic Inventory & Audit",
+    desc:"Map every encrypted system, protocol, and library across your bank's infrastructure.",
+    subs:[
+      "Catalogue all cryptographic algorithms in use (RSA, ECC, AES, SHA variants) across ATMs, core banking, APIs, and mobile apps.",
+      "Generate a Cryptographic Bill of Materials (CBOM) for all public-facing applications.",
+      "Identify systems using deprecated algorithms (MD5, SHA-1, RSA-1024) as immediate red flags.",
+      "Engage IIT Kanpur, IIT Jodhpur, or empanelled security vendors to conduct and independently validate the audit."
+    ]
+  },
+  {
+    num:"02", priority:"critical", category:0,
+    title:"Assess 'Harvest Now, Decrypt Later' (HNDL) Exposure",
+    desc:"Identify data at retroactive risk if adversaries are already collecting your encrypted traffic today.",
+    subs:[
+      "Classify all long-retention data (10+ years): customer KYC, loan records, inter-bank communications, audit trails.",
+      "Assess which channels (SWIFT, SFMS, API gateways) are most exposed to passive interception.",
+      "Prioritize exposed channels for immediate migration to quantum-safe protocols — HNDL is a present threat, not a future one.",
+      "Brief the Board on the HNDL risk profile with a timeline-to-Q-Day risk matrix."
+    ]
+  },
+  {
+    num:"03", priority:"critical", category:1,
+    title:"Adopt NIST-Standardized Post-Quantum Cryptography (PQC) Algorithms",
+    desc:"Migrate to the three NIST-finalized PQC standards and prepare for HQC adoption.",
+    subs:[
+      "Evaluate FIPS 203 (ML-KEM) for key encapsulation across TLS/HTTPS-based customer and API interfaces.",
+      "Plan adoption of FIPS 204 (ML-DSA) for all digital signature workflows: e-mandates, regulatory filings, internal approvals.",
+      "Map FIPS 205 (SLH-DSA) use cases for hash-based signature requirements in document management systems.",
+      "Ensure all hardware procured from 2026 onwards includes native PQC support — avoid creating fresh technical debt."
+    ]
+  },
+  {
+    num:"04", priority:"critical", category:0,
+    title:"Map Compliance to RBI, CERT-In & National Quantum Mission Mandates",
+    desc:"Align your roadmap to India's regulatory and policy framework on quantum cyber readiness.",
+    subs:[
+      "Review CERT-In & SISA's Quantum Cyber Readiness Whitepaper (July 2025) and assign internal ownership for each action item.",
+      "Track the Government Task Force roadmap: medium-term by 2030, long-term by 2033, CII by 2028–2029.",
+      "Engage with the Indian Banks' Association (IBA) working groups on quantum cybersecurity standards for PSBs.",
+      "Ensure your bank's quantum readiness roadmap is documented and reportable to RBI/regulators on demand."
+    ]
+  },
+  {
+    num:"05", priority:"high", category:1,
+    title:"Assess & Mandate Vendor and Third-Party PQC Readiness",
+    desc:"Your supply chain is only as quantum-safe as your weakest vendor.",
+    subs:[
+      "Issue a PQC readiness questionnaire to all technology vendors: core banking software, payment gateways, cloud providers, HSM vendors.",
+      "Include contractual clauses in 2026+ procurements requiring vendor PQC migration timelines and NIST algorithm support.",
+      "Audit third-party APIs (NPCI, SWIFT, insurance aggregators) for cryptographic vulnerability exposure.",
+      "Prefer vendors with published PQC roadmaps and certified quantum-safe HSM upgrade paths."
+    ]
+  },
+  {
+    num:"06", priority:"high", category:1,
+    title:"Build Cryptographic Agility into Core Systems",
+    desc:"Architect systems so cryptographic algorithms can be swapped without full system rebuilds.",
+    subs:[
+      "Refactor cryptographic dependencies into abstracted libraries — avoid hard-coding algorithm choices in application logic.",
+      "Implement hybrid cryptography (classical + PQC) as a transitional measure for TLS, digital certificates, and VPN tunnels.",
+      "Test PQC cipher suites on staging environments before production rollout, especially for high-throughput payment systems.",
+      "Document a rollback plan for each cryptographic migration to handle interoperability issues."
+    ]
+  },
+  {
+    num:"07", priority:"high", category:2,
+    title:"Evaluate Quantum Key Distribution (QKD) for High-Value Channels",
+    desc:"Consider QKD deployment for the bank's highest-sensitivity point-to-point communication links.",
+    subs:[
+      "Identify top-tier links warranting QKD: inter-data-center backbone, SFMS/RBI settlement channels, DR replication links.",
+      "Evaluate QNu Labs' indigenously developed QKD systems (500km network deployed) for Atmanirbhar Bharat alignment.",
+      "Engage with India's National Quantum Mission on co-funding or pilot programs for banking sector QKD deployments.",
+      "Adopt a layered strategy: PQC for broad application coverage; QKD for point-to-point ultra-sensitive links."
+    ]
+  },
+  {
+    num:"08", priority:"high", category:1,
+    title:"Build a Legacy System Migration Roadmap",
+    desc:"PSB legacy infrastructure is the biggest technical barrier — plan the migration in phased tiers.",
+    subs:[
+      "Tier all systems: Tier 1 (customer-facing/critical) → Tier 2 (internal ops) → Tier 3 (archival/legacy) and sequence migration.",
+      "Prioritize Tier 1 systems (UPI integrations, internet banking, mobile apps) for PQC migration by 2028.",
+      "Budget realistic timelines: replacing encryption in ATM networks, cloud, and data centers is a 5–7 year undertaking.",
+      "Coordinate migration schedules with RBI's IT examination calendar to avoid compliance conflicts."
+    ]
+  },
+  {
+    num:"09", priority:"medium", category:2,
+    title:"Develop PQC Talent & Awareness Within the Bank",
+    desc:"India's cybersecurity talent gap becomes acute at the quantum-specialist level — build internal capability now.",
+    subs:[
+      "Nominate 2–3 cybersecurity leads for dedicated PQC training: NIST courses, IIT Kanpur quantum security programs.",
+      "Partner with NQM-backed institutions for internships and knowledge transfer into your security team.",
+      "Conduct mandatory quantum threat awareness training for CTO, CRO, and technology risk teams annually.",
+      "Consider participating in PSB Hackathon 2026 (PNB/IIT Kanpur) as a sponsor and talent sourcing pipeline."
+    ]
+  },
+  {
+    num:"10", priority:"medium", category:2,
+    title:"Establish Board-Level Quantum Risk Reporting",
+    desc:"Quantum readiness is a strategic risk — it must be governed at board and risk committee level.",
+    subs:[
+      "Present a Quantum Risk Report to the Board Risk Management Committee at least semi-annually.",
+      "Include a Quantum Readiness Score as a standing KPI in the IT/cybersecurity risk dashboard.",
+      "Ensure the bank's ICAAP and SREP submissions from FY 2026–27 explicitly address quantum computing as an emerging risk.",
+      "Define a Quantum Incident Response Plan for scenarios where classical encryption is compromised before full PQC migration."
+    ]
+  }
+];
+
+const VERDICTS = [
+  { min:0,  max:20,  color:'var(--red)',   label:'CRITICAL RISK', icon:'🔴', msg:'Significant quantum exposure exists. Begin your cryptographic audit and HNDL risk briefing to the Board this quarter — delay is not an option.' },
+  { min:21, max:40,  color:'var(--red)',   label:'HIGH RISK',     icon:'🟠', msg:'Early-stage awareness exists but execution gaps are material. Prioritize HNDL assessment and NIST PQC adoption planning immediately.' },
+  { min:41, max:60,  color:'var(--amber)', label:'MODERATE RISK', icon:'🟡', msg:'Progress is underway but uneven. Close gaps in vendor readiness and legacy migration planning before the 2028 window narrows.' },
+  { min:61, max:80,  color:'var(--cyan)',  label:'PROGRESSING',   icon:'🔵', msg:'Strong foundational work in place. Focus now on QKD evaluation, PQC talent development, and formalising board-level quantum governance.' },
+  { min:81, max:100, color:'var(--green)', label:'QUANTUM READY', icon:'🟢', msg:"Your bank is among India's most quantum-prepared PSBs. Maintain velocity, document progress for regulators, and consider mentoring peer institutions." }
+];
+
+// State: states[i][j] = true (started) | false (not started)
+const states = ITEMS.map(item => item.subs.map(() => false));
+
+function buildChecklist() {
+  const cl = document.getElementById('checklist');
+  ITEMS.forEach((item, i) => {
+    const catColor = item.category===0?'var(--red)':item.category===1?'var(--amber)':'var(--cyan)';
+    const catBg    = item.category===0?'var(--red-dim)':item.category===1?'var(--amber-dim)':'var(--cyan-glow)';
+    const catBdr   = item.category===0?'rgba(255,71,87,0.3)':item.category===1?'rgba(255,179,0,0.3)':'rgba(0,212,255,0.3)';
+
+    const subsHTML = item.subs.map((s, j) => `
+      <div class="sub-item" id="sub-${i}-${j}">
+        <div class="sub-text">${s}</div>
+        <div class="toggle-group">
+          <button class="toggle-btn ns-active" id="ns-${i}-${j}" onclick="setStatus(${i},${j},false)">Not Started</button>
+          <button class="toggle-btn"           id="st-${i}-${j}" onclick="setStatus(${i},${j},true)">Started</button>
+        </div>
+      </div>`).join('');
+
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.id = `item-${i}`;
+    div.innerHTML = `
+      <div class="item-header" onclick="toggleExpand(${i})">
+        <div class="item-num">${item.num}</div>
+        <div class="item-body">
+          <div class="item-top">
+            <span class="priority-tag ${item.priority}">${item.priority.toUpperCase()}</span>
+            <span class="priority-tag" style="background:${catBg};color:${catColor};border:1px solid ${catBdr}">${CAT_NAMES[item.category]}</span>
+          </div>
+          <div class="item-title">${item.title}</div>
+          <div class="item-desc">${item.desc}</div>
+        </div>
+        <div class="item-right">
+          <span class="item-progress-count" id="prog-${i}">0 / 4</span>
+          <div class="item-mini-bar"><div class="item-mini-fill" id="mbar-${i}"></div></div>
+          <div class="caret" id="caret-${i}">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+      </div>
+      <div class="item-expand" id="expand-${i}">
+        <div class="sub-items">${subsHTML}</div>
+      </div>`;
+    cl.appendChild(div);
+  });
+}
+
+function toggleExpand(i) {
+  const el  = document.getElementById(`expand-${i}`);
+  const itm = document.getElementById(`item-${i}`);
+  const now = el.classList.toggle('open');
+  itm.classList.toggle('open', now);
+}
+
+function setStatus(i, j, started) {
+  states[i][j] = started;
+  document.getElementById(`ns-${i}-${j}`).className = 'toggle-btn' + (started ? '' : ' ns-active');
+  document.getElementById(`st-${i}-${j}`).className = 'toggle-btn' + (started ? ' st-active' : '');
+  document.getElementById(`sub-${i}-${j}`).classList.toggle('started', started);
+  refreshItem(i);
+  updateScore();
+}
+
+function refreshItem(i) {
+  const done  = states[i].filter(Boolean).length;
+  const total = states[i].length;
+  document.getElementById(`prog-${i}`).textContent = `${done} / ${total}`;
+  document.getElementById(`mbar-${i}`).style.width = (done / total * 100) + '%';
+  const el = document.getElementById(`item-${i}`);
+  el.classList.toggle('all-started',  done === total);
+  el.classList.toggle('some-started', done > 0 && done < total);
+}
+
+function updateScore() {
+  let total = 0, cat = [0, 0, 0];
+  ITEMS.forEach((item, i) => {
+    states[i].forEach(s => {
+      if (s) { total += 2.5; cat[item.category] += 2.5; }
+    });
+  });
+  total = Math.round(total * 10) / 10;
+
+  // Ring gauge
+  const offset = 283 - (total / 100) * 283;
+  const ring = document.getElementById('ringFill');
+  ring.style.strokeDashoffset = offset;
+
+  const v = VERDICTS.find(x => total >= x.min && total <= x.max) || VERDICTS[0];
+  ring.style.stroke = v.color;
+  document.getElementById('scoreNum').textContent  = total % 1 === 0 ? total : total.toFixed(1);
+  document.getElementById('scoreNum').style.color  = v.color;
+  document.getElementById('scoreLabel').textContent = v.label;
+  document.getElementById('scoreLabel').style.color = v.color;
+
+  const vEl = document.getElementById('verdict');
+  vEl.style.borderLeftColor = v.color;
+  vEl.style.background = v.color==='var(--red)'?'var(--red-dim)':v.color==='var(--amber)'?'var(--amber-dim)':v.color==='var(--green)'?'var(--green-dim)':'var(--cyan-glow)';
+  vEl.innerHTML = `${v.icon} &nbsp;<strong>${v.label}:</strong> ${v.msg}`;
+
+  // Category bars
+  cat.forEach((s, i) => {
+    document.getElementById(`t${i}`).style.width  = (s / CAT_MAX[i] * 100) + '%';
+    document.getElementById(`ts${i}`).textContent = s.toFixed(1) + ' / ' + CAT_MAX[i];
+  });
+
+  document.getElementById('globalBar').style.width = total + '%';
+}
+
+function resetAll() {
+  ITEMS.forEach((item, i) => {
+    item.subs.forEach((_, j) => {
+      states[i][j] = false;
+      document.getElementById(`ns-${i}-${j}`).className = 'toggle-btn ns-active';
+      document.getElementById(`st-${i}-${j}`).className = 'toggle-btn';
+      document.getElementById(`sub-${i}-${j}`).classList.remove('started');
+    });
+    refreshItem(i);
+  });
+  updateScore();
+}
+
+function copyScore() {
+  const total = document.getElementById('scoreNum').textContent;
+  const label = document.getElementById('scoreLabel').textContent;
+  const lines = [
+    `PSB CISO Quantum Readiness Diagnostic`,
+    `Score: ${total}/100  —  ${label}`,
+    `Generated: ${new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'long',year:'numeric'})}`,
+    ``,
+  ];
+  ITEMS.forEach((item, i) => {
+    const done = states[i].filter(Boolean).length;
+    lines.push(`${item.num}. ${item.title}  [${done}/${states[i].length} started]`);
+    item.subs.forEach((s, j) => {
+      lines.push(`    ${states[i][j] ? '✓ STARTED      ' : '○ NOT STARTED  '} ${s}`);
+    });
+    lines.push('');
+  });
+  navigator.clipboard.writeText(lines.join('\n')).then(() => {
+    const btn = event.target.closest('.btn');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✓ &nbsp;Copied to clipboard!';
+    setTimeout(() => btn.innerHTML = orig, 2500);
+  }).catch(() => alert('Copy failed — please use Print/Save PDF instead.'));
+}
+
+buildChecklist();
+updateScore();
+</script>
+</body>
+</html>
